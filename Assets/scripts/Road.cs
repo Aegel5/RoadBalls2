@@ -7,6 +7,7 @@ using UnityEngine;
 [Serializable]
 public class Road : MonoBehaviour
 {
+    [SerializeField, HideInInspector]
     List<Vector3> lastPath = new List<Vector3>();
 
     public void CreatePoint()
@@ -93,7 +94,7 @@ public class Road : MonoBehaviour
 
     IEnumerable<Vector3> Interpolate(Vector3 p1, Vector3 p2, Vector3 p3, bool addLast)
     {
-        int count = 20;
+        int count = 61;
         double step = 1d / (count-1);
         for (int j = 0; j < count; j++)
         {
@@ -117,7 +118,7 @@ public class Road : MonoBehaviour
         yield break;
     }
 
-    public void RegenPath()
+    void RegenPath()
     {
         lastPath = GeneratePath();
         //var path = GeneratePath();
