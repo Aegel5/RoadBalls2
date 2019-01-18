@@ -92,17 +92,17 @@ public class Road : MonoBehaviour
 
     }
 
-    IEnumerable<Vector3> Interpolate(Vector3 p1, Vector3 p2, Vector3 p3, bool addLast)
+    IEnumerable<Vector3> Interpolate(Segment seg, bool addLast)
     {
-        int count = 61;
+        int count = 101;
         double step = 1d / (count-1);
         for (int j = 0; j < count; j++)
         {
             float t = (float)(j * step);
             if (j == count - 1)
                 t = 1;
-            Debug.Log($"t={t}");
-            var point = Bezier.EvaluateQuadratic(p1, p2, p3, t);
+            //Debug.Log($"t={t}");
+            var point = seg.Interpolate(t);
 
             if (t >= 1)
             {
@@ -112,7 +112,6 @@ public class Road : MonoBehaviour
             else
             {
                 yield return point;
-                //Debug.Log($"add pint {point}");
             }
         }
         yield break;
@@ -145,31 +144,38 @@ public class Road : MonoBehaviour
         return lastPath;
     }
 
+    public List<Vector3> GetBasePoins()
+    {
+        List<Vector3> res = new List<Vector3>();
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            res.Add(transform.GetChild(i).position);
+        }
+        Debug.Log($"add={res.Count}");
+        return res;
+    }
+
+    public SegmentList GenerateSegmentList()
+    {
+        return SegmentList.GenerateFromPoints(GetBasePoins());
+    }
+
 
     public List<Vector3> GeneratePath()
     {
+        SegmentList segments = GenerateSegmentList();
+
         List<Vector3> res = new List<Vector3>();
-        int count = transform.childCount;
 
-        Vector3 p1 = transform.GetChild(0).position;
-        Vector3 p2;
-        for (int i = 2; i < count; i++)
+        for (int i = 0; i < segments.Size; i++)
         {
-            bool isLast = i == count - 1;
-            var prevChild = transform.GetChild(i-1);
-            var prevPos = prevChild.position;
+            var seg = segments.GetSegment(i);
+            bool isLast = i == segments.Size - 1;
 
-            var curChild = transform.GetChild(i);
-            var curPos = curChild.position;
-
-            p2 = prevPos + (curPos - prevPos) / 2;
-
-            foreach(var p in Interpolate(p1, prevPos, p2, isLast))
+            foreach(var p in Interpolate(seg, isLast))
             {
                 res.Add(p);
             }
-
-            p1 = p2;
         }
 
         return res;

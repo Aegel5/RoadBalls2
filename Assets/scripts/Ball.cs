@@ -6,27 +6,30 @@ public class Ball : MonoBehaviour
 {
     public Road road;
     //public float speed = 0.01f;
-    List<Vector3> path = null;
+    SegmentList segments;
 
-    int curIndexPath = 2;
+    int curIndexSeg = 0;
+    float curSegTime = 0.05f;
     // Start is called before the first frame update
     void Start()
     {
-        path = road.GetPath();
-        Debug.Log($"count={path.Count}");
+        segments = road.GenerateSegmentList();
 
         if (IsEnd())
             return;
 
-        transform.position = path[curIndexPath];
-        SetupPoint();
+        transform.position = Pos(curSegTime);
 
+    }
 
+    Vector3 Pos(float time)
+    {
+        return segments.GetSegment(curIndexSeg).Interpolate(time);
     }
 
     bool IsEnd()
     {
-        return curIndexPath + 2 >= path.Count;
+        
     }
 
     Quaternion start;
@@ -58,8 +61,9 @@ public class Ball : MonoBehaviour
             return;
 
         transform.LookAt(path[curIndexPath + 1]);
+
         var prevRotAFterLook = transform.rotation;
-        transform.position += transform.forward * Time.deltaTime * 25f;
+        transform.position += transform.forward * Time.deltaTime * 100f;
         transform.LookAt(path[curIndexPath + 1]);
 
         if (prevRotAFterLook != transform.rotation)
@@ -80,6 +84,7 @@ public class Ball : MonoBehaviour
         Debug.Log($"finished: {finished}, dist={dist}, fulldist={fulldist}");
 
         transform.rotation = Quaternion.Lerp(start, end, finished);
+
 
 
 
