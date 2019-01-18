@@ -43,6 +43,13 @@ public class SegmentList
     }
 }
 
+static class SegmentHelper
+{
+    public static float sumErr;
+    public static int countErr;
+    public static float AvgErr { get { return sumErr / countErr; } }
+}
+
 public class Segment
 {
     Vector3 start;
@@ -85,22 +92,22 @@ public class Segment
             res.actualMagnitude = 0;
             return res;
         }
-        float curTimeDelta = 0.4f;
-        float curT = fromTime + curTimeDelta;
-        float delta = float.MaxValue;
+        float curTimeDelta = 1.01f - fromTime;
+        float curTime = fromTime + curTimeDelta;  // ~ 1.01f
+        float minDeltaMagnitude = float.MaxValue;
         for (int i = 0; i < 15; i++)
         {
-            float curT2 = Mathf.Min(1f, curT);
-            var pos = Interpolate(curT2);
+            float curTClipped = Mathf.Min(1f, curTime);
+            var pos = Interpolate(curTClipped);
             var curMagn = (pos - fromPos).magnitude;
             var curDelta = Mathf.Abs(curMagn - magnitude);
 
-            if (curDelta < delta)
+            if (curDelta < minDeltaMagnitude)
             {
                 res.actualMagnitude = curMagn;
                 res.pos = pos;
-                res.time = curT2;
-                delta = curDelta;
+                res.time = curTClipped;
+                minDeltaMagnitude = curDelta;
             }
 
             if (curMagn == magnitude)
@@ -110,11 +117,11 @@ public class Segment
 
             if (curMagn > magnitude)
             {
-                curT -= curTimeDelta;
+                curTime -= curTimeDelta;
             }
             else
             {
-                if (curT >= 1)
+                if (curTime >= 1)
                 {
                     // подошли к концу сегмента
                     Debug.Log("return end");
@@ -127,10 +134,13 @@ public class Segment
                 {
                     throw new System.Exception("internal error: алгоритм работает только на уменьшение magnitude");
                 }
-                curT += curTimeDelta;
+                curTime += curTimeDelta;
             }
         }
 
+        //SegmentHelper.sumErr = Mathf.Abs(res.actualMagnitude - magnitude);
+        //SegmentHelper.countErr += 1;
+        //Debug.Log($"aerr={SegmentHelper.AvgErr} ({SegmentHelper.sumErr})");
         return res;
     }
 }
