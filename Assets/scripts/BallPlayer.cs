@@ -5,13 +5,13 @@ using UnityEngine;
 public class BallPlayer : MonoBehaviour
 {
     public Road road;
+    public Transform ball;
+
     SegmentList segments;
     Segment curSeg;
     bool isFinish = false;
     float radius = 0f;
-    public Transform ball;
     float sideDist = 0;
-
     int curIndexSeg = 0;
     float curSegTime = 0.05f;
 
@@ -21,7 +21,7 @@ public class BallPlayer : MonoBehaviour
 
         var sphereCollider = ball.GetComponent<SphereCollider>();
         radius = Mathf.Max(sphereCollider.transform.lossyScale.x, sphereCollider.transform.lossyScale.x, sphereCollider.transform.lossyScale.x) * sphereCollider.radius;
-        Debug.Log($"radius is: {radius}");
+        Debug.Log($"radius is: {radius}, segcount: {segments.Size}");
 
         if (segments.Size == 0)
         {
@@ -46,17 +46,22 @@ public class BallPlayer : MonoBehaviour
         return isFinish;
     }
 
-    void SetPos(Vector3 pos)
-    {
-
-    }
-
     void HandleInput()
     {
-        var move = Input.GetAxis("Horizontal");
-        if (move == 0)
+        float pointer_x = Input.GetAxis("Mouse X");
+        float pointer_y = Input.GetAxis("Mouse Y");
+        if (Input.touchCount > 0)
+        {
+            pointer_x = Input.touches[0].deltaPosition.x;
+            pointer_y = Input.touches[0].deltaPosition.y;
+
+            pointer_x /= 4;
+            pointer_y /= 4;
+        }
+
+        if (pointer_x == 0)
             return;
-        sideDist += move * Time.deltaTime * 2;
+        sideDist += pointer_x * Time.deltaTime * 2;
         sideDist = Mathf.Clamp(sideDist, -.7f, .7f);
 
     }
@@ -74,15 +79,15 @@ public class BallPlayer : MonoBehaviour
         var res = curSeg.FindPointByMagnitude(curSegTime, distForFrame);
         if (res.time == 1)
         {
-            Debug.Log("finish1");
-            curIndexSeg += 1;
             // конец сегмента переходим на следующий
+
+            curIndexSeg += 1;
+            Debug.Log($"go to seg {curIndexSeg}");
+
             if (curIndexSeg == segments.Size)
             {
-                Debug.Log("finish2");
+                Debug.Log("finish trace");
                 curIndexSeg = 0;
-                //isFinish = true;
-                //return;
             }
             SetupSegment();
             if (res.actualMagnitude < distForFrame)
@@ -95,7 +100,7 @@ public class BallPlayer : MonoBehaviour
         var circle = 2 * Mathf.PI * radius;
         var period = distForFrame / circle;
         var grad = 360f * period / 10f;
-        ball.Rotate(20f*Time.deltaTime*20, 0, 0, Space.Self);
+        ball.Rotate(400f * Time.deltaTime, 0, 0, Space.Self);
 
         float nextTimePoint = curSegTime + (res.time - curSegTime) * 2;
         if (nextTimePoint > 1)

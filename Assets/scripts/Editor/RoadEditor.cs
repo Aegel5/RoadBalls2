@@ -18,6 +18,7 @@ public class RoadEditor : Editor
         EditorGUI.BeginChangeCheck();
         if (GUILayout.Button("Update road"))
         {
+            Undo.RecordObject(road, "update_road");
             road.UpdateRoad();
         }
         else if (GUILayout.Button("Generate points"))
@@ -45,7 +46,7 @@ public class RoadEditor : Editor
     void Draw()
     {
         Handles.color = Color.blue;
-        var points = road.Points();
+        var points = road.GetMainPoints();
         for (int i = 0; i < points.Count; i++)
         {
             Handles.FreeMoveHandle(points[i], Quaternion.identity, 0.5f, Vector3.zero, Handles.SphereHandleCap);
@@ -54,7 +55,6 @@ public class RoadEditor : Editor
         var path = road.GetPath();
         for (int i = 0; i < path.Count; i++)
         {
-            //Handles.draw(path[i], 1f);
             Handles.color = Color.green;
             Handles.FreeMoveHandle(path[i], Quaternion.identity, 0.1f, Vector3.zero, Handles.SphereHandleCap);
 
@@ -67,11 +67,6 @@ public class RoadEditor : Editor
                 Handles.FreeMoveHandle(path[i]+left, Quaternion.identity, 0.1f, Vector3.zero, Handles.SphereHandleCap);
                 Handles.FreeMoveHandle(path[i]+right, Quaternion.identity, 0.1f, Vector3.zero, Handles.SphereHandleCap);
             }
-            //Handles.DrawSolidDisc(path[i], Vector3.zero, 0.5f);
-
-            //Handles.color = Color.red;
-            //if (i > 0)
-            //Handles.DrawLine(path[i - 1], path[i]);
         }
     }
 }

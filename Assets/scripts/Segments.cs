@@ -53,12 +53,10 @@ public class Segment
     public Segment(Vector3 p1, Vector3 p2, Vector3 p3)
     {
         start = p1;
-
         control = p2;
-
         end = p3;
 
-        Debug.Log($"create seg {start} {control} {end}");
+        //Debug.Log($"create seg {start} {control} {end}");
 
     }
 
@@ -80,9 +78,8 @@ public class Segment
 
     public FindPointRes FindPointByMagnitude(float fromTime, Vector3 fromPos, float magnitude)
     {
-
         FindPointRes res = new FindPointRes();
-        if(fromTime >= 1)
+        if (fromTime >= 1)
         {
             res.time = 1;
             res.actualMagnitude = 0;
@@ -90,15 +87,15 @@ public class Segment
         }
         float curTimeDelta = 0.4f;
         float curT = fromTime + curTimeDelta;
-        float delta = 0;
-        for(int i = 0; i < 15; i++)
+        float delta = float.MaxValue;
+        for (int i = 0; i < 15; i++)
         {
             float curT2 = Mathf.Min(1f, curT);
             var pos = Interpolate(curT2);
             var curMagn = (pos - fromPos).magnitude;
             var curDelta = Mathf.Abs(curMagn - magnitude);
 
-            if (delta == 0 || curDelta < delta)
+            if (curDelta < delta)
             {
                 res.actualMagnitude = curMagn;
                 res.pos = pos;
@@ -111,25 +108,24 @@ public class Segment
 
             curTimeDelta /= 2;
 
-            if(curMagn > magnitude)
+            if (curMagn > magnitude)
             {
                 curT -= curTimeDelta;
             }
             else
             {
-                if(curT >= 1)
+                if (curT >= 1)
                 {
+                    // подошли к концу сегмента
                     Debug.Log("return end");
-                    // подошли к концу
                     res.time = 1;
                     res.pos = Interpolate(1);
                     res.actualMagnitude = (res.pos - fromPos).magnitude;
                     return res;
                 }
-                if(i == 0)
+                if (i == 0)
                 {
-                    // алгоритм работает только на уменьшение
-                    throw new System.Exception("internal error");
+                    throw new System.Exception("internal error: алгоритм работает только на уменьшение magnitude");
                 }
                 curT += curTimeDelta;
             }

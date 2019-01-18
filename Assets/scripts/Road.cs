@@ -11,16 +11,11 @@ public class Road : MonoBehaviour
     [SerializeField, HideInInspector]
     List<Vector3> lastPath = new List<Vector3>();
 
-    public void CreatePoint()
-    {
-
-    }
-
     public void GeneratePoints(int count)
     {
-        Vector3 last = Points().LastOrDefault();
+        Vector3 last = GetMainPoints().LastOrDefault();
 
-        for(int i = 0; i<count; i++)
+        for (int i = 0; i < count; i++)
         {
             last.x += UnityEngine.Random.Range(0, 100);
             last.y += UnityEngine.Random.Range(0, 100);
@@ -35,16 +30,15 @@ public class Road : MonoBehaviour
     {
         var obj = new GameObject();
         obj.name = "point";
-        if(pos != null)
+        if (pos != null)
         {
             obj.transform.localPosition = pos.Value;
         }
-        else if(transform.childCount != 0)
+        else if (transform.childCount != 0)
         {
             obj.transform.localPosition = transform.GetChild(transform.childCount - 1).transform.position;
         }
         obj.transform.SetParent(transform);
-        //chil
     }
 
     public void UpdateMesh()
@@ -71,7 +65,6 @@ public class Road : MonoBehaviour
         for (int i = 1; i < lastPath.Count; i++)
         {
             Vector3 forward = lastPath[i] - lastPath[i - 1];
-            //forward.Normalize();
 
             var left = Vector3.Cross(Vector3.up, forward).normalized;
             var right = Vector3.Cross(forward, Vector3.up).normalized;
@@ -85,25 +78,25 @@ public class Road : MonoBehaviour
                 p2 = lastPath[i - 1] + right;
                 verts[vertIndex++] = p1;
                 verts[vertIndex++] = p2;
-                uvs[vertIndex-2] = new Vector2(0, 0);
-                uvs[vertIndex-1] = new Vector2(1, 0);
+                uvs[vertIndex - 2] = new Vector2(0, 0);
+                uvs[vertIndex - 1] = new Vector2(1, 0);
             }
 
             verts[vertIndex++] = p3;
             verts[vertIndex++] = p4;
 
-            tris[triIndex++] = vertIndex-4; // p1
-            tris[triIndex++] = vertIndex-3; // p2
-            tris[triIndex++] = vertIndex-2; // p3
+            tris[triIndex++] = vertIndex - 4; // p1
+            tris[triIndex++] = vertIndex - 3; // p2
+            tris[triIndex++] = vertIndex - 2; // p3
 
-            tris[triIndex++] = vertIndex -3; // p2
-            tris[triIndex++] = vertIndex-1; // p4
-            tris[triIndex++] = vertIndex -2; // p3
+            tris[triIndex++] = vertIndex - 3; // p2
+            tris[triIndex++] = vertIndex - 1; // p4
+            tris[triIndex++] = vertIndex - 2; // p3
 
             float completionPercent = i / (float)(lastPath.Count - 1);
             //float v = 1 - Mathf.Abs(2 * completionPercent - 1);
-            uvs[vertIndex-2] = new Vector2(0, completionPercent);
-            uvs[vertIndex-1] = new Vector2(1, completionPercent);
+            uvs[vertIndex - 2] = new Vector2(0, completionPercent); // p3
+            uvs[vertIndex - 1] = new Vector2(1, completionPercent); // p4
         }
 
         Mesh mesh = new Mesh();
@@ -124,15 +117,13 @@ public class Road : MonoBehaviour
     IEnumerable<Vector3> Interpolate(Segment seg, bool addLast)
     {
         int count = 61;
-        double step = 1d / (count-1);
-        for (int j = 0; j < count; j++)
+        double step = 1d / (count - 1);
+        for (int i = 0; i < count; i++)
         {
-            float t = (float)(j * step);
-            if (j == count - 1)
+            float t = (float)(i * step);
+            if (i == count - 1)
                 t = 1;
-            //Debug.Log($"t={t}");
             var point = seg.Interpolate(t);
-
             if (t >= 1)
             {
                 if (addLast)
@@ -149,16 +140,9 @@ public class Road : MonoBehaviour
     void RegenPath()
     {
         lastPath = GeneratePath();
-        //var path = GeneratePath();
-        //for(int i = 0; i < path.Count; i++)
-        //{
-        //    Gizmos.DrawSphere(path[i], 1f);
-        //    if(i > 0)
-        //        Gizmos.DrawLine(path[i - 1], path[i]);
-        //}
     }
 
-    public List<Vector3> Points()
+    public List<Vector3> GetMainPoints()
     {
         List<Vector3> res = new List<Vector3>();
         for (int i = 0; i < transform.childCount; i++)
@@ -173,20 +157,9 @@ public class Road : MonoBehaviour
         return lastPath;
     }
 
-    public List<Vector3> GetBasePoins()
-    {
-        List<Vector3> res = new List<Vector3>();
-        for (int i = 0; i < transform.childCount; i++)
-        {
-            res.Add(transform.GetChild(i).position);
-        }
-        Debug.Log($"add={res.Count}");
-        return res;
-    }
-
     public SegmentList GenerateSegmentList()
     {
-        return SegmentList.GenerateFromPoints(GetBasePoins());
+        return SegmentList.GenerateFromPoints(GetMainPoints());
     }
 
 
@@ -201,24 +174,12 @@ public class Road : MonoBehaviour
             var seg = segments.GetSegment(i);
             bool isLast = i == segments.Size - 1;
 
-            foreach(var p in Interpolate(seg, isLast))
+            foreach (var p in Interpolate(seg, isLast))
             {
                 res.Add(p);
             }
         }
 
         return res;
-    }
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 }
