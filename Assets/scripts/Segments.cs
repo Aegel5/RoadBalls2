@@ -85,6 +85,7 @@ public class Segment
 
     public FindPointRes FindPointByMagnitude(float fromTime, Vector3 fromPos, float magnitude)
     {
+        var mag2 = magnitude * magnitude;
         FindPointRes res = new FindPointRes();
         if (fromTime >= 1)
         {
@@ -99,8 +100,8 @@ public class Segment
         {
             float curTClipped = Mathf.Min(1f, curTime);
             var pos = Interpolate(curTClipped);
-            var curMagn = (pos - fromPos).magnitude;
-            var curDelta = Mathf.Abs(curMagn - magnitude);
+            var curMagn = (pos - fromPos).sqrMagnitude;
+            var curDelta = Mathf.Abs(curMagn - mag2);
 
             if (curDelta < minDeltaMagnitude)
             {
@@ -110,12 +111,12 @@ public class Segment
                 minDeltaMagnitude = curDelta;
             }
 
-            if (curMagn == magnitude)
+            if (curMagn == mag2)
                 break;
 
             curTimeDelta /= 2;
 
-            if (curMagn > magnitude)
+            if (curMagn > mag2)
             {
                 curTime -= curTimeDelta;
             }
@@ -137,10 +138,10 @@ public class Segment
                 curTime += curTimeDelta;
             }
         }
-
-        //SegmentHelper.sumErr = Mathf.Abs(res.actualMagnitude - magnitude);
-        //SegmentHelper.countErr += 1;
-        //Debug.Log($"aerr={SegmentHelper.AvgErr} ({SegmentHelper.sumErr})");
+        res.actualMagnitude = Mathf.Sqrt(res.actualMagnitude);
+        SegmentHelper.sumErr = Mathf.Abs(res.actualMagnitude - magnitude);
+        SegmentHelper.countErr += 1;
+        Debug.Log($"aerr={SegmentHelper.AvgErr} ({SegmentHelper.countErr})");
         return res;
     }
 }
