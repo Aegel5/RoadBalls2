@@ -66,4 +66,75 @@ public class Segment
     {
         return Bezier.EvaluateQuadratic(start, control, end, t);
     }
+
+    public struct FindPointRes
+    {
+        public Vector3 pos;
+        public float time;
+        public float actualMagnitude;
+    }
+    public FindPointRes FindPointByMagnitude(float fromTime, float magnitude)
+    {
+        return FindPointByMagnitude(fromTime, Interpolate(fromTime), magnitude);
+    }
+
+    public FindPointRes FindPointByMagnitude(float fromTime, Vector3 fromPos, float magnitude)
+    {
+
+        FindPointRes res = new FindPointRes();
+        if(fromTime >= 1)
+        {
+            res.time = 1;
+            res.actualMagnitude = 0;
+            return res;
+        }
+        float curTimeDelta = 0.4f;
+        float curT = fromTime + curTimeDelta;
+        float delta = 0;
+        for(int i = 0; i < 15; i++)
+        {
+            float curT2 = Mathf.Min(1f, curT);
+            var pos = Interpolate(curT2);
+            var curMagn = (pos - fromPos).magnitude;
+            var curDelta = Mathf.Abs(curMagn - magnitude);
+
+            if (delta == 0 || curDelta < delta)
+            {
+                res.actualMagnitude = curMagn;
+                res.pos = pos;
+                res.time = curT2;
+                delta = curDelta;
+            }
+
+            if (curMagn == magnitude)
+                break;
+
+            curTimeDelta /= 2;
+
+            if(curMagn > magnitude)
+            {
+                curT -= curTimeDelta;
+            }
+            else
+            {
+                if(curT >= 1)
+                {
+                    Debug.Log("return end");
+                    // подошли к концу
+                    res.time = 1;
+                    res.pos = Interpolate(1);
+                    res.actualMagnitude = (res.pos - fromPos).magnitude;
+                    return res;
+                }
+                if(i == 0)
+                {
+                    // алгоритм работает только на уменьшение
+                    throw new System.Exception("internal error");
+                }
+                curT += curTimeDelta;
+            }
+        }
+
+        return res;
+    }
 }

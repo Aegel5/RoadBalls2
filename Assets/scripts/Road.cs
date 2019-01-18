@@ -41,6 +41,7 @@ public class Road : MonoBehaviour
         if (count == 0)
             return null;
         Vector3[] verts = new Vector3[count * 2];
+        Vector2[] uvs = new Vector2[verts.Length];
         int numTris = 2 * (count - 1);
         int[] tris = new int[numTris * 3];
         int vertIndex = 0;
@@ -64,6 +65,8 @@ public class Road : MonoBehaviour
                 p2 = lastPath[i - 1] + right;
                 verts[vertIndex++] = p1;
                 verts[vertIndex++] = p2;
+                uvs[vertIndex-2] = new Vector2(0, 0);
+                uvs[vertIndex-1] = new Vector2(1, 0);
             }
 
             verts[vertIndex++] = p3;
@@ -76,11 +79,17 @@ public class Road : MonoBehaviour
             tris[triIndex++] = vertIndex -3; // p2
             tris[triIndex++] = vertIndex-1; // p4
             tris[triIndex++] = vertIndex -2; // p3
+
+            float completionPercent = i / (float)(lastPath.Count - 1);
+            //float v = 1 - Mathf.Abs(2 * completionPercent - 1);
+            uvs[vertIndex-2] = new Vector2(0, completionPercent);
+            uvs[vertIndex-1] = new Vector2(1, completionPercent);
         }
 
         Mesh mesh = new Mesh();
         mesh.vertices = verts;
         mesh.triangles = tris;
+        mesh.uv = uvs;
 
         return mesh;
     }
@@ -94,7 +103,7 @@ public class Road : MonoBehaviour
 
     IEnumerable<Vector3> Interpolate(Segment seg, bool addLast)
     {
-        int count = 101;
+        int count = 161;
         double step = 1d / (count-1);
         for (int j = 0; j < count; j++)
         {
