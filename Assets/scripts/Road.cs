@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 [ExecuteInEditMode]
 [Serializable]
@@ -15,11 +16,30 @@ public class Road : MonoBehaviour
 
     }
 
-    public void AddPoint()
+    public void GeneratePoints(int count)
+    {
+        Vector3 last = Points().LastOrDefault();
+
+        for(int i = 0; i<count; i++)
+        {
+            last.x += UnityEngine.Random.Range(0, 100);
+            last.y += UnityEngine.Random.Range(0, 100);
+            last.z += UnityEngine.Random.Range(0, 100);
+
+            AddPoint(last);
+        }
+
+    }
+
+    public void AddPoint(Vector3? pos = null)
     {
         var obj = new GameObject();
         obj.name = "point";
-        if(transform.childCount != 0)
+        if(pos != null)
+        {
+            obj.transform.localPosition = pos.Value;
+        }
+        else if(transform.childCount != 0)
         {
             obj.transform.localPosition = transform.GetChild(transform.childCount - 1).transform.position;
         }
@@ -103,7 +123,7 @@ public class Road : MonoBehaviour
 
     IEnumerable<Vector3> Interpolate(Segment seg, bool addLast)
     {
-        int count = 161;
+        int count = 61;
         double step = 1d / (count-1);
         for (int j = 0; j < count; j++)
         {

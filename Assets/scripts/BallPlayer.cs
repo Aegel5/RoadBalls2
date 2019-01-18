@@ -5,7 +5,6 @@ using UnityEngine;
 public class BallPlayer : MonoBehaviour
 {
     public Road road;
-    private float speed = 0.01f;
     SegmentList segments;
     Segment curSeg;
     bool isFinish = false;
@@ -40,7 +39,7 @@ public class BallPlayer : MonoBehaviour
         curSeg = segments.GetSegment(curIndexSeg);
         transform.position = curSeg.Interpolate(curSegTime);
     }
-    
+
 
     bool IsEnd()
     {
@@ -64,7 +63,6 @@ public class BallPlayer : MonoBehaviour
 
 
 
-    // Update is called once per frame
     void Update()
     {
         if (IsEnd())
@@ -74,30 +72,30 @@ public class BallPlayer : MonoBehaviour
 
         float distForFrame = Time.deltaTime * 20f;
         var res = curSeg.FindPointByMagnitude(curSegTime, distForFrame);
-        if(res.time == 1)
+        if (res.time == 1)
         {
-            Debug.Log("finish");
+            Debug.Log("finish1");
             curIndexSeg += 1;
             // конец сегмента переходим на следующий
-            if(curIndexSeg == segments.Size)
+            if (curIndexSeg == segments.Size)
             {
-                isFinish = true;
-                return;
+                Debug.Log("finish2");
+                curIndexSeg = 0;
+                //isFinish = true;
+                //return;
             }
             SetupSegment();
-            if(res.actualMagnitude < distForFrame)
+            if (res.actualMagnitude < distForFrame)
             {
                 distForFrame -= res.actualMagnitude;
                 res = curSeg.FindPointByMagnitude(curSegTime, distForFrame);
             }
         }
 
-        var len = 2 * Mathf.PI * radius;
-        var period = distForFrame / len;
-        var grad = 360 * period / 5;
-        ball.Rotate(grad, 0, 0, Space.Self);
-
-        // Перемещаемся в найденную точку и устанавливаем направление forward 
+        var circle = 2 * Mathf.PI * radius;
+        var period = distForFrame / circle;
+        var grad = 360f * period / 10f;
+        ball.Rotate(20f*Time.deltaTime*20, 0, 0, Space.Self);
 
         float nextTimePoint = curSegTime + (res.time - curSegTime) * 2;
         if (nextTimePoint > 1)
@@ -105,11 +103,10 @@ public class BallPlayer : MonoBehaviour
         var nextPoint = curSeg.Interpolate(nextTimePoint);
         var forward = nextPoint - res.pos;
         var left = Vector3.Cross(Vector3.up, forward).normalized;
-        var up = Vector3.Cross(forward, left).normalized * (radius-0.05f);
+        var up = Vector3.Cross(forward, left).normalized * (radius - 0.05f);
         var delt = up + left * sideDist;
         transform.position = res.pos + delt;
-        transform.LookAt(nextPoint+delt);
+        transform.LookAt(nextPoint + delt);
         curSegTime = res.time;
-
     }
 }

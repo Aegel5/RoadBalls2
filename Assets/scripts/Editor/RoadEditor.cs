@@ -20,6 +20,11 @@ public class RoadEditor : Editor
         {
             road.UpdateRoad();
         }
+        else if (GUILayout.Button("Generate points"))
+        {
+            Undo.RecordObject(road, "generate_points");
+            road.GeneratePoints(5);
+        }
         if (GUILayout.Button("Add point"))
         {
             Undo.RecordObject(road, "add_point");
