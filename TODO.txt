@@ -1,0 +1,4 @@
+﻿Qubic smooth road curve (autocalc control p1,p2)
+Функция Tangent curve для определения направления в любой точке.
+add "Enemys"
+Пропадающая дорога когда смотри снизу
