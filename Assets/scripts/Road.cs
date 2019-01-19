@@ -12,7 +12,7 @@ public class Road : MonoBehaviour
     List<Vector3> lastPath = new List<Vector3>();
 
     [SerializeField, HideInInspector]
-    SegmentCurve segmentList = new SegmentCurve();
+    SegmentCurve curve = new SegmentCurve();
 
     public void GeneratePoints(int count)
     {
@@ -115,8 +115,8 @@ public class Road : MonoBehaviour
 
     public void UpdateRoad()
     {
-        segmentList = SegmentCurve.GenerateFromPoints(GetMainPoints());
-        lastPath = segmentList.GeneratePath();
+        curve = SegmentCurve.GenerateFromPoints(GetMainPoints());
+        lastPath = curve.GeneratePath();
 
         UpdateMesh();
     }
@@ -139,7 +139,7 @@ public class Road : MonoBehaviour
 
     public SegmentCurve GetSegmentList()
     {
-        return segmentList;
+        return curve;
     }
 
 

@@ -6,14 +6,15 @@ public class BallPlayer : MonoBehaviour
 {
     Road road;
     public Transform ball;
+    SegmentCurve curve;
 
-    SegmentCurve segments;
-    Segment curSeg;
-    bool isFinish = false;
     float radius = 0f;
     float sideDist = 0;
     int curIndexSeg = 0;
-    float curSegTime = 0.05f;
+
+    float curTime = 0.05f;
+
+    bool isFinish;
 
     private void Awake()
     {
@@ -22,31 +23,21 @@ public class BallPlayer : MonoBehaviour
 
     void Start()
     {
-        segments = road.GetSegmentList();
+        curve = road.GetSegmentList();
 
         var sphereCollider = ball.GetComponent<SphereCollider>();
         radius = Mathf.Max(sphereCollider.transform.lossyScale.x, sphereCollider.transform.lossyScale.x, sphereCollider.transform.lossyScale.x) * sphereCollider.radius;
-        Debug.Log($"radius is: {radius}, segcount: {segments.SegCount}");
+        Debug.Log($"radius is: {radius}, segcount: {curve.SegCount}");
 
-        if (segments.SegCount == 0)
+        if (curve.SegCount == 0)
         {
             isFinish = true;
             return;
         }
 
-        SetupSegment();
-
         GameController.Inst.FillRoadRandom();
 
     }
-
-    void SetupSegment()
-    {
-        curSegTime = 0;
-        curSeg = segments.GetSegment(curIndexSeg);
-        transform.position = curSeg.Interpolate(curSegTime);
-    }
-
 
     bool IsEnd()
     {
@@ -80,32 +71,20 @@ public class BallPlayer : MonoBehaviour
         if (IsEnd())
             return;
 
-        if (curSeg == null)
-            return;
-
         HandleInput();
 
         float distForFrame = Time.deltaTime * 20f;
-        var res = curSeg.FindPointByMagnitude(curSegTime, distForFrame);
-        if (res.time == 1)
+
+        var res = curve.FindPointByMagnitude(curTime, distForFrame);
+        var pos = res.pos;
+        if (res.isend)
         {
-            // конец сегмента переходим на следующий
-
-            curIndexSeg += 1;
-            Debug.Log($"go to seg {curIndexSeg}");
-
-            if (curIndexSeg == segments.SegCount)
-            {
-                Debug.Log("finish trace");
-                curIndexSeg = 0;
-            }
-            SetupSegment();
-            var actualMagn = Mathf.Sqrt(res.actualSqrMagnitude);
-            if (actualMagn < distForFrame)
-            {
-                distForFrame -= actualMagn;
-                res = curSeg.FindPointByMagnitude(curSegTime, distForFrame);
-            }
+            curTime = 0.05f;
+            pos = curve.Interpolate(curTime);
+        }
+        else
+        {
+            curTime = res.time;
         }
 
         var circle = 2 * Mathf.PI * radius;
@@ -113,13 +92,10 @@ public class BallPlayer : MonoBehaviour
         var grad = 360f * period / 10f;
         ball.Rotate(400f * Time.deltaTime, 0, 0, Space.Self);
 
-        var forward = curSeg.Tangent(res.time);
+        var forward = curve.Forward(curTime);
         var left = SegmentCurve.LeftByForward(forward);
         var up = Vector3.Cross(forward, left).normalized * (radius - 0.05f);
-        var delt = up + left * sideDist;
-        transform.position = res.pos + delt;
+        transform.position = pos + up + left * sideDist;
         transform.rotation = Quaternion.LookRotation(forward);
-
-        curSegTime = res.time;
     }
 }

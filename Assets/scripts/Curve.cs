@@ -24,8 +24,8 @@ public class SegmentCurve
     [SerializeField]
     List<Segment> segments = new List<Segment>();
 
-    [SerializeField]
     public int SegCount { get { return segments.Count; } }
+
     public Segment GetSegment(int index)
     {
         return segments[index];
@@ -106,7 +106,7 @@ public class SegmentCurve
         var res = segments[segIndex].FindPointByMagnitude(pos.t, magnitude);
         if (res.time == 1)
         {
-            if (pos.segIndex == segments.Count)
+            if (pos.segIndex == segments.Count-1)
             {
                 res.isend = true;
             }

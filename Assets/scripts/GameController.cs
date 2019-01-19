@@ -6,7 +6,7 @@ public class GameController : MonoBehaviour
 {
     Road road;
     public Transform badBall;
-    SegmentCurve segments;
+    SegmentCurve curve;
 
     List<Transform> objs = new List<Transform>();
 
@@ -16,25 +16,25 @@ public class GameController : MonoBehaviour
     {
         Inst = this;
         road = GameObject.FindGameObjectWithTag("Road").GetComponent<Road>();
-        segments = road.GetSegmentList();
+        curve = road.GetSegmentList();
     }
 
     public void FillRoadRandom()
     {
-        Debug.Log($"len curve={segments.Len}, segcount={segments.SegCount}");
+        Debug.Log($"len curve={curve.Len}, segcount={curve.SegCount}");
 
         SortedSet<int> added = new SortedSet<int>();
         for(int i = 0; i < 100; i++)
         {
-            int len = (int)Random.Range(0, segments.Len);
+            int len = (int)Random.Range(0, curve.Len);
             //Debug.Log($"len={len}");
             if (added.Contains(len))
                 continue;
 
-            float time = segments.FindTimeByLen(len);
-            Debug.Log($"time={time} for len={len}");
-            var pos = segments.Interpolate(time);
-            var forward = segments.Forward(time);
+            float time = curve.FindTimeByLen(len);
+            //Debug.Log($"time={time} for len={len}");
+            var pos = curve.Interpolate(time);
+            var forward = curve.Forward(time);
 
             var left = SegmentCurve.LeftByForward(forward);
             var up = Vector3.Cross(forward, left).normalized * 0.15f;
