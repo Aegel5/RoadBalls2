@@ -18,4 +18,14 @@ public static class Bezier
         Vector3 p1 = EvaluateQuadratic(b, c, d, t);
         return Vector3.Lerp(p0, p1, t);
     }
+
+    public static Vector3 TangentQuadratic(Vector3 a, Vector3 b, Vector3 c, float t)
+    {
+        return 2 * (1 - t) * (b - a) + 2 * t * (c - b);
+    }
+
+    public static Vector3 TangentCubic(Vector3 a, Vector3 b, Vector3 c, Vector3 d, float t)
+    {
+        return 3 * (1 - t) * (1 - t) * (b - a) + 6 * (1 - t) * t * (c - b) + 3 * t * t * (d - c);
+    }
 }

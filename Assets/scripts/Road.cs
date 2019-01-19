@@ -11,6 +11,9 @@ public class Road : MonoBehaviour
     [SerializeField, HideInInspector]
     List<Vector3> lastPath = new List<Vector3>();
 
+    [SerializeField, HideInInspector]
+    SegmentCurve segmentList = new SegmentCurve();
+
     public void GeneratePoints(int count)
     {
         Vector3 last = GetMainPoints().LastOrDefault();
@@ -25,6 +28,9 @@ public class Road : MonoBehaviour
         }
 
     }
+
+    public float MovableWidth { get { return 1f * 2; } }
+
 
     public void AddPoint(Vector3? pos = null)
     {
@@ -66,7 +72,7 @@ public class Road : MonoBehaviour
         {
             Vector3 forward = lastPath[i] - lastPath[i - 1];
 
-            var left = Vector3.Cross(Vector3.up, forward).normalized;
+            var left = SegmentCurve.LeftByForward(forward);
             var right = Vector3.Cross(forward, Vector3.up).normalized;
 
             p3 = lastPath[i] + left;
@@ -109,37 +115,10 @@ public class Road : MonoBehaviour
 
     public void UpdateRoad()
     {
-        RegenPath();
+        segmentList = SegmentCurve.GenerateFromPoints(GetMainPoints());
+        lastPath = segmentList.GeneratePath();
+
         UpdateMesh();
-
-    }
-
-    IEnumerable<Vector3> Interpolate(Segment seg, bool addLast)
-    {
-        int count = 61;
-        double step = 1d / (count - 1);
-        for (int i = 0; i < count; i++)
-        {
-            float t = (float)(i * step);
-            if (i == count - 1)
-                t = 1;
-            var point = seg.Interpolate(t);
-            if (t >= 1)
-            {
-                if (addLast)
-                    yield return point;
-            }
-            else
-            {
-                yield return point;
-            }
-        }
-        yield break;
-    }
-
-    void RegenPath()
-    {
-        lastPath = GeneratePath();
     }
 
     public List<Vector3> GetMainPoints()
@@ -152,34 +131,17 @@ public class Road : MonoBehaviour
         return res;
     }
 
+
     public List<Vector3> GetPath()
     {
         return lastPath;
     }
 
-    public SegmentList GenerateSegmentList()
+    public SegmentCurve GetSegmentList()
     {
-        return SegmentList.GenerateFromPoints(GetMainPoints());
+        return segmentList;
     }
 
 
-    public List<Vector3> GeneratePath()
-    {
-        SegmentList segments = GenerateSegmentList();
 
-        List<Vector3> res = new List<Vector3>();
-
-        for (int i = 0; i < segments.Size; i++)
-        {
-            var seg = segments.GetSegment(i);
-            bool isLast = i == segments.Size - 1;
-
-            foreach (var p in Interpolate(seg, isLast))
-            {
-                res.Add(p);
-            }
-        }
-
-        return res;
-    }
 }
