@@ -63,10 +63,15 @@ public class Player : MonoBehaviour
 
     public void Collision (BadBall ball)
     {
-        if(badBall.ColorType != ball.ColorType)
+
+        if (badBall.ColorType != ball.ColorType)
         {
             curTime = startTime;
             waitTime = Time.time+2;
+            Handheld.Vibrate();
+        }
+        else
+        {
         }
     }
 
