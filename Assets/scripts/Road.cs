@@ -29,7 +29,7 @@ public class Road : MonoBehaviour
 
     }
 
-    public float MovableWidth { get { return 1f * 2; } }
+    public float Width { get { return 1f * 2; } }
 
 
     public void AddPoint(Vector3? pos = null)
@@ -137,7 +137,7 @@ public class Road : MonoBehaviour
         return lastPath;
     }
 
-    public SegmentCurve GetSegmentList()
+    public SegmentCurve GetCurve()
     {
         return curve;
     }

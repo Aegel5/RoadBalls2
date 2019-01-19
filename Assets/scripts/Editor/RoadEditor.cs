@@ -18,17 +18,17 @@ public class RoadEditor : Editor
         EditorGUI.BeginChangeCheck();
         if (GUILayout.Button("Update road"))
         {
-            Undo.RecordObject(road, "update_road");
+            //Undo.RecordObject(road, "update_road");
             road.UpdateRoad();
         }
         else if (GUILayout.Button("Generate points"))
         {
-            Undo.RecordObject(road, "generate_points");
+            //Undo.RecordObject(road, "generate_points");
             road.GeneratePoints(5);
         }
-        if (GUILayout.Button("Add point"))
+        else if (GUILayout.Button("Add point"))
         {
-            Undo.RecordObject(road, "add_point");
+            //Undo.RecordObject(road, "add_point");
             road.AddPoint();
         }
         if (EditorGUI.EndChangeCheck())

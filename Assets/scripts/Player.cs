@@ -2,17 +2,18 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BallPlayer : MonoBehaviour
+public class Player : MonoBehaviour
 {
     Road road;
-    public Transform ball;
+    public BadBall badBall;
     SegmentCurve curve;
 
-    float radius = 0f;
     float sideDist = 0;
     int curIndexSeg = 0;
 
-    float curTime = 0.05f;
+    const float startTime = 0.05f;
+    float curTime = startTime;
+    float waitTime = 0;
 
     bool isFinish;
 
@@ -23,20 +24,13 @@ public class BallPlayer : MonoBehaviour
 
     void Start()
     {
-        curve = road.GetSegmentList();
-
-        var sphereCollider = ball.GetComponent<SphereCollider>();
-        radius = Mathf.Max(sphereCollider.transform.lossyScale.x, sphereCollider.transform.lossyScale.x, sphereCollider.transform.lossyScale.x) * sphereCollider.radius;
-        Debug.Log($"radius is: {radius}, segcount: {curve.SegCount}");
+        curve = road.GetCurve();
 
         if (curve.SegCount == 0)
         {
             isFinish = true;
             return;
         }
-
-        GameController.Inst.FillRoadRandom();
-
     }
 
     bool IsEnd()
@@ -46,22 +40,34 @@ public class BallPlayer : MonoBehaviour
 
     void HandleInput()
     {
-        float pointer_x = Input.GetAxis("Mouse X");
-        float pointer_y = Input.GetAxis("Mouse Y");
+        float pointer_x = 0;
         if (Input.touchCount > 0)
         {
             pointer_x = Input.touches[0].deltaPosition.x;
-            pointer_y = Input.touches[0].deltaPosition.y;
-
             pointer_x /= 4;
-            pointer_y /= 4;
         }
+        else
+        {
+            pointer_x = Input.GetAxis("Horizontal");
+            pointer_x *= 2;
+        }
+
 
         if (pointer_x == 0)
             return;
-        sideDist += pointer_x * Time.deltaTime * 2;
-        sideDist = Mathf.Clamp(sideDist, -.7f, .7f);
 
+        sideDist += pointer_x * Time.deltaTime * 2;
+        sideDist = Mathf.Clamp(sideDist, -.65f, .65f);
+
+    }
+
+    public void Collision (BadBall ball)
+    {
+        if(badBall.ColorType != ball.ColorType)
+        {
+            curTime = startTime;
+            waitTime = Time.time+2;
+        }
     }
 
 
@@ -69,6 +75,9 @@ public class BallPlayer : MonoBehaviour
     void Update()
     {
         if (IsEnd())
+            return;
+
+        if (Time.time < waitTime)
             return;
 
         HandleInput();
@@ -79,7 +88,7 @@ public class BallPlayer : MonoBehaviour
         var pos = res.pos;
         if (res.isend)
         {
-            curTime = 0.05f;
+            curTime = startTime;
             pos = curve.Interpolate(curTime);
         }
         else
@@ -87,14 +96,14 @@ public class BallPlayer : MonoBehaviour
             curTime = res.time;
         }
 
-        var circle = 2 * Mathf.PI * radius;
+        var circle = 2 * Mathf.PI * badBall.Radius;
         var period = distForFrame / circle;
         var grad = 360f * period / 10f;
-        ball.Rotate(400f * Time.deltaTime, 0, 0, Space.Self);
+        badBall.transform.Rotate(400f * Time.deltaTime, 0, 0, Space.Self);
 
         var forward = curve.Forward(curTime);
         var left = SegmentCurve.LeftByForward(forward);
-        var up = Vector3.Cross(forward, left).normalized * (radius - 0.05f);
+        var up = Vector3.Cross(forward, left).normalized * (badBall.Radius);
         transform.position = pos + up + left * sideDist;
         transform.rotation = Quaternion.LookRotation(forward);
     }
