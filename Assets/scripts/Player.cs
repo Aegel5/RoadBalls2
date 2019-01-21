@@ -95,7 +95,6 @@ public class Player : MonoBehaviour
     }
 
 
-
     void Update()
     {
         if (isFinish)
@@ -120,30 +119,17 @@ public class Player : MonoBehaviour
 
         Vector3 pathPos;
 
-        if (true)
+
+        var findRes = curve.FindPointByMagnitude(curTime, distForFrame);
+        pathPos = findRes.pos;
+        if (findRes.isend)
         {
-            var findRes = curve.FindPointByMagnitude(curTime, distForFrame);
-            pathPos = findRes.pos;
-            if (findRes.isend)
-            {
-                MoveToStart();
-            }
-            else
-            {
-                curTime = findRes.time;
-            }
+            MoveToStart();
         }
         else
         {
-            curLen += distForFrame;
-            if(curLen >= curve.Len)
-            {
-                MoveToStart();
-            }
-            curTime = curve.CalcTimeByLen(curLen);
-            pathPos = curve.Interpolate(curTime);
+            curTime = findRes.time;
         }
-
 
 
         var circleLen = 2 * Mathf.PI * playerBall.Radius;

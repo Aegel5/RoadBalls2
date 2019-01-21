@@ -134,6 +134,8 @@ public class Curve
                         return forward;
                 }
             }
+
+            throw new Exception("forward == up");
         }
 
         return forward;
