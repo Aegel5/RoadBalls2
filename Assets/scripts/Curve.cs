@@ -373,7 +373,6 @@ public class Segment
     {
         if (curveType == CurveType.BezierQuadratic)
         {
-
             return Bezier.EvaluateQuadratic(start, control1, end, t);
         }
         else

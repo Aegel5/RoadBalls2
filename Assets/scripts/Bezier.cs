@@ -36,8 +36,6 @@ public static class Bezier
 
         if(prevPoint.HasValue && nextPoint.HasValue)
         {
-
-
             var left = prevPoint.Value - point;
             var right = nextPoint.Value - point;
 
