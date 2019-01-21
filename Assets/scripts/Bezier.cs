@@ -36,20 +36,24 @@ public static class Bezier
 
         if(prevPoint.HasValue && nextPoint.HasValue)
         {
+
+
             var left = prevPoint.Value - point;
             var right = nextPoint.Value - point;
 
             var leftnorm = left.normalized;
             var rightnorm = right.normalized;
 
-            var orto = Vector3.Cross(leftnorm, rightnorm).normalized;
+            var orto = Vector3.Cross(rightnorm, leftnorm).normalized;
             var mediana = (leftnorm + rightnorm).normalized;
 
             var vect1 = Vector3.Cross(orto, mediana);
             var vect2 = -vect1;
 
-            p1 = vect1.normalized * left.magnitude / 2;
-            p1 = vect2.normalized * right.magnitude / 2;
+            p1 = point + vect1.normalized * left.magnitude / 2;
+            p2 = point + vect2.normalized * right.magnitude / 2;
+
+            //Debug.Log($"p={point}, prev={prevPoint}, next={nextPoint}, left={left}, right={right}, orto={orto}, med={mediana}, vect1={vect1}, vect2={vect2}, p1={p1}, p2={p2}");
         }
 
         return (p1, p2);

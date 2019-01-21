@@ -31,7 +31,7 @@ static public class Utils
         {
             if (child.name == childName)
             {
-                Debug.Log("found " + childName);
+                //Debug.Log("found " + childName);
                 return child.transform;
             }
         }

@@ -44,7 +44,7 @@ public class Player : MonoBehaviour
         else
         {
             pointer_x = Input.GetAxis("Horizontal");
-            pointer_x *= 2;
+            pointer_x *= 3;
         }
 
 
@@ -58,7 +58,7 @@ public class Player : MonoBehaviour
     void MoveToStart()
     {
         curTime = 0.05f;
-        transform.position = curve.Interpolate(curTime);
+        transform.position = ToGlobal(curve.Interpolate(curTime));
         waitTime = 0;
         playerBall.ColorType = BallColorType.Type1;
         playerBall.UpdateColor();
@@ -94,6 +94,11 @@ public class Player : MonoBehaviour
         return false;
     }
 
+    Vector3 ToGlobal(Vector3 point)
+    {
+        return road.transform.TransformPoint(point);
+    }
+
 
     void Update()
     {
@@ -120,7 +125,7 @@ public class Player : MonoBehaviour
         Vector3 pathPos;
 
         var findRes = curve.FindPointByMagnitude(curTime, distForFrame);
-        pathPos = findRes.pos;
+        pathPos = ToGlobal(findRes.pos);
         if (findRes.isend)
         {
             MoveToStart();
@@ -156,7 +161,5 @@ public class Player : MonoBehaviour
 
         transform.rotation = Quaternion.LookRotation(forward);
         transform.position = newPos;
-
-        Debug.Log($"pos: {transform.position}");
     }
 }

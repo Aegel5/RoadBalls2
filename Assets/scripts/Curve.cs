@@ -10,7 +10,7 @@ using System;
 //    public float t;
 //}
 
-enum CurveType
+public enum CurveType
 {
     BezierQuadratic,
     BezierCubic
@@ -269,6 +269,7 @@ public class Curve
 
             if (i > 0)
             {
+                Debug.Log($"start={prevPoint.Value}, c1={prevPointControl2.Value}, c2={curControls.p1}, end={curPoint}");
                 Segment seg = new Segment(prevPoint.Value, prevPointControl2.Value, curControls.p1, curPoint);
                 curve.segments.Add(seg);
             }
@@ -278,6 +279,14 @@ public class Curve
         }
 
         return curve;
+    }
+
+    static public Curve GenerateFromPoints(IList<Vector3> points, CurveType curveType)
+    {
+        if (curveType == CurveType.BezierCubic)
+            return GenerateBezierCubic(points);
+        else
+            return GenerateFromPointsQuadratic(points);
     }
 
     static public Curve GenerateFromPointsQuadratic(IList<Vector3> points)
@@ -332,23 +341,26 @@ public class Segment
     [SerializeField]
     Vector3 control2;
 
+    public Vector3 Control1 { get { return control1; } }
+    public Vector3 Control2 { get { return control2; } }
+
     [SerializeField]
     public float Len; /*{ get; private set; }*/
 
-    public Segment(Vector3 p1, Vector3 p2, Vector3 p3)
+    public Segment(Vector3 start, Vector3 c1, Vector3 end)
     {
-        start = p1;
-        control1 = p2;
-        end = p3;
+        this.start = start;
+        control1 = c1;
+        this.end = end;
         curveType = CurveType.BezierQuadratic;
     }
 
-    public Segment(Vector3 p1, Vector3 p2, Vector3 p3, Vector3 p4)
+    public Segment(Vector3 start, Vector3 c1, Vector3 c2, Vector3 end)
     {
-        start = p1;
-        control1 = p2;
-        control1 = p3;
-        end = p4;
+        this.start = start;
+        control1 = c1;
+        control2 = c2;
+        this.end = end;
         curveType = CurveType.BezierCubic;
     }
 

@@ -112,9 +112,9 @@ public class Road : MonoBehaviour
         return mesh;
     }
 
-    public void UpdateRoad()
+    public void UpdateRoad(CurveType curveType)
     {
-        curve = Curve.GenerateFromPointsQuadratic(GetMainPoints());
+        curve = Curve.GenerateFromPoints(GetMainPoints(), curveType);
         lastPath = curve.GeneratePath();
 
         UpdateMesh();
@@ -122,10 +122,11 @@ public class Road : MonoBehaviour
 
     public List<Vector3> GetMainPoints()
     {
+        var anchors = Utils.RecursiveFindChild(transform, "anchors");
         List<Vector3> res = new List<Vector3>();
-        for (int i = 0; i < transform.childCount; i++)
+        for (int i = 0; i < anchors.childCount; i++)
         {
-            res.Add(transform.GetChild(i).position);
+            res.Add(anchors.GetChild(i).localPosition);
         }
         return res;
     }

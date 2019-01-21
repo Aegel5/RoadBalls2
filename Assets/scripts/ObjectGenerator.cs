@@ -37,7 +37,7 @@ public class ObjectGenerator : MonoBehaviour
 
     public void FillRoadRandom()
     {
-        road = GameObject.FindGameObjectWithTag("Road").GetComponent<Road>();
+        road = transform.parent.GetComponent<Road>();
         curve = road.GetCurve();
         gameBase = GameObject.FindGameObjectWithTag("GameBase").GetComponent<GameBase>();
         objRoot = Utils.RecursiveFindChild(transform, "objRoot");
@@ -51,7 +51,7 @@ public class ObjectGenerator : MonoBehaviour
 
         for (int i = 0; i < 110; i++)
         {
-            int len = (int)Random.Range(20, curve.Len);
+            int len = (int)Random.Range(30, curve.Len);
             if (objs.ContainsKey(len))
             {
                 //i--;
