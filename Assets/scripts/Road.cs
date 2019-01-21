@@ -114,7 +114,7 @@ public class Road : MonoBehaviour
 
     public void UpdateRoad()
     {
-        curve = Curve.GenerateFromPoints(GetMainPoints());
+        curve = Curve.GenerateFromPointsQuadratic(GetMainPoints());
         lastPath = curve.GeneratePath();
 
         UpdateMesh();

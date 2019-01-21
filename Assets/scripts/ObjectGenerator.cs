@@ -73,7 +73,7 @@ public class ObjectGenerator : MonoBehaviour
 
             var rot = Quaternion.LookRotation(forward);
 
-            if (i < 6)
+            if (i < 10)
             {
                 ElementColorChanger changer = new ElementColorChanger();
                 var obj = Instantiate<ColorChanger>(gameBase.colorChangerPrefab, poscenter, rot, objRoot);

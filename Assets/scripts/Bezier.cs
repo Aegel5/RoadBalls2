@@ -28,4 +28,30 @@ public static class Bezier
     {
         return 3 * (1 - t) * (1 - t) * (b - a) + 6 * (1 - t) * t * (c - b) + 3 * t * t * (d - c);
     }
+
+    public static (Vector3 p1, Vector3 p2) CalcControlPointsForCubic(Vector3 point, Vector3? prevPoint, Vector3? nextPoint)
+    {
+        var p1 = point;
+        var p2 = point;
+
+        if(prevPoint.HasValue && nextPoint.HasValue)
+        {
+            var left = prevPoint.Value - point;
+            var right = nextPoint.Value - point;
+
+            var leftnorm = left.normalized;
+            var rightnorm = right.normalized;
+
+            var orto = Vector3.Cross(leftnorm, rightnorm).normalized;
+            var mediana = (leftnorm + rightnorm).normalized;
+
+            var vect1 = Vector3.Cross(orto, mediana);
+            var vect2 = -vect1;
+
+            p1 = vect1.normalized * left.magnitude / 2;
+            p1 = vect2.normalized * right.magnitude / 2;
+        }
+
+        return (p1, p2);
+    }
 }

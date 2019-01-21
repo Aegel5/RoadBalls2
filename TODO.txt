@@ -1,3 +1,3 @@
 ﻿Qubic smooth road curve (autocalc control p1,p2)
-add "Enemys"
 Пропадающая дорога когда смотрим снизу
+премещение по кривой by fixed step

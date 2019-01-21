@@ -119,7 +119,6 @@ public class Player : MonoBehaviour
 
         Vector3 pathPos;
 
-
         var findRes = curve.FindPointByMagnitude(curTime, distForFrame);
         pathPos = findRes.pos;
         if (findRes.isend)
@@ -130,7 +129,6 @@ public class Player : MonoBehaviour
         {
             curTime = findRes.time;
         }
-
 
         var circleLen = 2 * Mathf.PI * playerBall.Radius;
         var period = distForFrame / circleLen;
@@ -158,5 +156,7 @@ public class Player : MonoBehaviour
 
         transform.rotation = Quaternion.LookRotation(forward);
         transform.position = newPos;
+
+        Debug.Log($"pos: {transform.position}");
     }
 }

@@ -10,6 +10,12 @@ using System;
 //    public float t;
 //}
 
+enum CurveType
+{
+    BezierQuadratic,
+    BezierCubic
+}
+
 public struct FindPointRes
 {
     public Vector3 pos;
@@ -23,6 +29,9 @@ public class Curve
 {
     [SerializeField]
     List<Segment> segments = new List<Segment>();
+
+    [SerializeField]
+    CurveType curveType;
 
     public int SegCount { get { return segments.Count; } }
     public Segment GetSegment(int index)
@@ -233,12 +242,51 @@ public class Curve
         return path;
     }
 
-    static public Curve GenerateFromPoints(IList<Vector3> points)
+    static public Curve GenerateBezierCubic(IList<Vector3> points)
     {
-        Curve segList = new Curve();
+        Curve curve = new Curve();
+        curve.curveType = CurveType.BezierCubic;
 
         if (!points.Any())
-            return segList;
+            return curve;
+
+        Vector3? prevPoint = null;
+        Vector3? nextPoint = null;
+        Vector3? prevPointControl2 = null;
+        for(int i = 0; i < points.Count; i++)
+        {
+            if (i < points.Count - 1)
+            {
+                nextPoint = points[i + 1];
+            }
+            else
+            {
+                nextPoint = null;
+            }
+
+            var curPoint = points[i];
+            var curControls = Bezier.CalcControlPointsForCubic(curPoint, prevPoint, nextPoint);
+
+            if (i > 0)
+            {
+                Segment seg = new Segment(prevPoint.Value, prevPointControl2.Value, curControls.p1, curPoint);
+                curve.segments.Add(seg);
+            }
+
+            prevPointControl2 = curControls.p2;
+            prevPoint = curPoint;
+        }
+
+        return curve;
+    }
+
+    static public Curve GenerateFromPointsQuadratic(IList<Vector3> points)
+    {
+        Curve curve = new Curve();
+        curve.curveType = CurveType.BezierQuadratic;
+
+        if (!points.Any())
+            return curve;
 
         int count = points.Count;
         Vector3 p1 = points[0];
@@ -253,13 +301,12 @@ public class Curve
             p2 = prevPos + (curPos - prevPos) / 2;
 
             Segment seg = new Segment(p1, prevPos, p2);
-            segList.segments.Add(seg);
+            curve.segments.Add(seg);
 
             p1 = p2;
         }
 
-
-        return segList;
+        return curve;
     }
 }
 
@@ -274,11 +321,16 @@ static class SegmentHelper
 public class Segment
 {
     [SerializeField]
+    CurveType curveType;
+
+    [SerializeField]
     Vector3 start;
     [SerializeField]
     Vector3 end;
     [SerializeField]
-    Vector3 control;
+    Vector3 control1;
+    [SerializeField]
+    Vector3 control2;
 
     [SerializeField]
     public float Len; /*{ get; private set; }*/
@@ -286,8 +338,18 @@ public class Segment
     public Segment(Vector3 p1, Vector3 p2, Vector3 p3)
     {
         start = p1;
-        control = p2;
+        control1 = p2;
         end = p3;
+        curveType = CurveType.BezierQuadratic;
+    }
+
+    public Segment(Vector3 p1, Vector3 p2, Vector3 p3, Vector3 p4)
+    {
+        start = p1;
+        control1 = p2;
+        control1 = p3;
+        end = p4;
+        curveType = CurveType.BezierCubic;
     }
 
     public void SetLen(float len)
@@ -297,12 +359,27 @@ public class Segment
 
     public Vector3 Interpolate(float t)
     {
-        return Bezier.EvaluateQuadratic(start, control, end, t);
+        if (curveType == CurveType.BezierQuadratic)
+        {
+
+            return Bezier.EvaluateQuadratic(start, control1, end, t);
+        }
+        else
+        {
+            return Bezier.EvaluateCubic(start, control1, control2, end, t);
+        }
     }
 
     public Vector3 Tangent(float t)
     {
-        return Bezier.TangentQuadratic(start, control, end, t);
+        if (curveType == CurveType.BezierQuadratic)
+        {
+            return Bezier.TangentQuadratic(start, control1, end, t);
+        }
+        else
+        {
+            return Bezier.TangentCubic(start, control1, control2, end, t);
+        }
     }
 
     public FindPointRes FindPointByMagnitude(float fromTime, float magnitude)
