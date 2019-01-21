@@ -19,13 +19,12 @@ public struct FindPointRes
 }
 
 [Serializable]
-public class SegmentCurve 
+public class Curve 
 {
     [SerializeField]
     List<Segment> segments = new List<Segment>();
 
     public int SegCount { get { return segments.Count; } }
-
     public Segment GetSegment(int index)
     {
         return segments[index];
@@ -33,6 +32,11 @@ public class SegmentCurve
 
     [SerializeField]
     public float Len; /*{ get; private set; }*/
+
+    public bool IsEmpty()
+    {
+        return segments.Count == 0;
+    }
 
     IEnumerable<Vector3> GeneratePathForSegment(Segment seg, bool addLast)
     {
@@ -57,10 +61,7 @@ public class SegmentCurve
         yield break;
     }
 
-    static public Vector3 LeftByForward(Vector3 forward)
-    {
-        return Vector3.Cross(Vector3.up, forward).normalized;
-    }
+
 
     struct CurvePos
     {
@@ -87,10 +88,56 @@ public class SegmentCurve
         return pos;
     }
 
+    static public Vector3 LeftByForward(Vector3 forward)
+    {
+        var res = Vector3.Cross(Vector3.up, forward).normalized;
+
+        if (res == Vector3.zero)
+        {
+            throw new Exception("forward == Vector3.up");
+        }
+
+        return res;
+    }
+
     public Vector3 Forward(float time)
     {
         var pos = GetPos(time);
-        return pos.seg.Tangent(pos.t);
+        var forward = pos.seg.Tangent(pos.t);
+
+        bool IsCorrect()
+        {
+            return Vector3.Cross(Vector3.up, forward) != Vector3.zero;
+        }
+
+        if(!IsCorrect())
+        {
+            // Так как для ориентации в пространсте мы используем вектор up, то forward не должен с ним совпадать.
+            // Попробуем взять ближайший вектор.
+
+            float tdelta = 0;
+            for(int i = 0; i < 10; i++)
+            {
+                tdelta += 0.0005f;
+                var newt = pos.t + tdelta;
+                if (newt <= 1)
+                {
+                    forward = pos.seg.Tangent(newt);
+                    if (IsCorrect())
+                        return forward;
+                }
+                newt = pos.t - tdelta;
+                if (newt >= 0)
+                {
+                    forward = pos.seg.Tangent(newt);
+                    if (IsCorrect())
+                        return forward;
+                }
+            }
+        }
+
+        return forward;
+
     }
 
     public Vector3 Interpolate(float time)
@@ -127,7 +174,7 @@ public class SegmentCurve
         return res;
     }
 
-    public float FindTimeByLen(float len)
+    public float CalcTimeByLen(float len)
     {
         float time = 0;
         float curlen = 0;
@@ -135,7 +182,6 @@ public class SegmentCurve
         {
             var seg = segments[i];
             curlen += seg.Len;
-            //Debug.Log($"curlen={curlen}");
             if(len <= curlen)
             {
                 var t = 1 - (curlen - len) / seg.Len;
@@ -185,9 +231,9 @@ public class SegmentCurve
         return path;
     }
 
-    static public SegmentCurve GenerateFromPoints(IList<Vector3> points)
+    static public Curve GenerateFromPoints(IList<Vector3> points)
     {
-        SegmentCurve segList = new SegmentCurve();
+        Curve segList = new Curve();
 
         if (!points.Any())
             return segList;
@@ -203,7 +249,6 @@ public class SegmentCurve
             var curPos = points[i];
 
             p2 = prevPos + (curPos - prevPos) / 2;
-
 
             Segment seg = new Segment(p1, prevPos, p2);
             segList.segments.Add(seg);
@@ -241,9 +286,6 @@ public class Segment
         start = p1;
         control = p2;
         end = p3;
-
-        //Debug.Log($"create seg {start} {control} {end}");
-
     }
 
     public void SetLen(float len)
@@ -256,15 +298,14 @@ public class Segment
         return Bezier.EvaluateQuadratic(start, control, end, t);
     }
 
+    public Vector3 Tangent(float t)
+    {
+        return Bezier.TangentQuadratic(start, control, end, t);
+    }
 
     public FindPointRes FindPointByMagnitude(float fromTime, float magnitude)
     {
         return FindPointByMagnitude(fromTime, Interpolate(fromTime), magnitude);
-    }
-
-    public Vector3 Tangent(float t)
-    {
-        return Bezier.TangentQuadratic(start, control, end, t);
     }
 
     public FindPointRes FindPointByMagnitude(float fromTime, Vector3 fromPos, float magnitude)

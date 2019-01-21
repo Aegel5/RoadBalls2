@@ -15,16 +15,24 @@ static public class Utils
                 GameObject.Destroy(obj.GetChild(i).gameObject);
         }
     }
+    public static T RecursiveFindChild<T>(Transform parent, string childName)
+    {
+        var res = RecursiveFindChild(parent, childName);
+        if(res != null)
+        {
+            return res.GetComponent<T>();
+        }
+        return default(T);
+    }
 
-    public static GameObject RecursiveFindChild(Transform parent, string childName)
+    public static Transform RecursiveFindChild(Transform parent, string childName)
     {
         foreach (Transform child in parent)
         {
-            //Debug.Log("")
             if (child.name == childName)
             {
                 Debug.Log("found " + childName);
-                return child.gameObject;
+                return child.transform;
             }
         }
 

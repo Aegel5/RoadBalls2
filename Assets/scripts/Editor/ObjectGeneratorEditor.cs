@@ -3,24 +3,29 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-[CustomEditor(typeof(GameController))]
-public class GameControllerEditor : Editor
+[CustomEditor(typeof(ObjectGenerator))]
+public class ObjectGeneratorEditor : Editor
 {
-    GameController obj;
+    ObjectGenerator obj;
     void OnEnable()
     {
-        obj = (GameController)target;
+        obj = (ObjectGenerator)target;
     }
     public override void OnInspectorGUI()
     {
         base.OnInspectorGUI();
 
         EditorGUI.BeginChangeCheck();
-        if (GUILayout.Button("Fill Balls"))
+
+        if (GUILayout.Button("Random fill objects"))
         {
-            //Undo.RecordObject(road, "add_point");
             obj.FillRoadRandom();
         }
+
+        if (GUILayout.Button("Test"))
+        {
+        }
+
         if (EditorGUI.EndChangeCheck())
         {
             SceneView.RepaintAll();

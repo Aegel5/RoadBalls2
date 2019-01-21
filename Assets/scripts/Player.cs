@@ -5,37 +5,32 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
     Road road;
-    public BadBall badBall;
-    SegmentCurve curve;
+    BadBall playerBall;
+    Curve curve;
 
-    float sideDist = 0;
-    int curIndexSeg = 0;
-
-    const float startTime = 0.05f;
-    float curTime = startTime;
-    float waitTime = 0;
+    float sideDist;
+    float curTime;
+    float waitTime;
+    float curLen;
 
     bool isFinish;
 
     private void Awake()
     {
         road = GameObject.FindGameObjectWithTag("Road").GetComponent<Road>();
+        playerBall = Utils.RecursiveFindChild<BadBall>(transform, "PlayerBall");
+        curve = road.GetCurve();
     }
 
     void Start()
     {
-        curve = road.GetCurve();
-
-        if (curve.SegCount == 0)
+        if (curve.IsEmpty())
         {
             isFinish = true;
             return;
         }
-    }
 
-    bool IsEnd()
-    {
-        return isFinish;
+        MoveToStart();
     }
 
     void HandleInput()
@@ -58,58 +53,124 @@ public class Player : MonoBehaviour
 
         sideDist += pointer_x * Time.deltaTime * 2;
         sideDist = Mathf.Clamp(sideDist, -.65f, .65f);
-
     }
 
-    public void Collision (BadBall ball)
+    void MoveToStart()
     {
+        curTime = 0.05f;
+        transform.position = curve.Interpolate(curTime);
+        waitTime = 0;
+        playerBall.ColorType = BallColorType.Type1;
+        playerBall.UpdateColor();
+        sideDist = 0;
+        curLen = 5f;
+    }
 
-        if (badBall.ColorType != ball.ColorType)
+    public bool HandleCollision(Collider other)
+    {
+        var otherball = other.GetComponent<BadBall>();
+        if (otherball != null)
         {
-            curTime = startTime;
-            waitTime = Time.time+2;
-            Handheld.Vibrate();
+            if (playerBall.ColorType != otherball.ColorType)
+            {
+                waitTime = Time.time + 2;
+                Handheld.Vibrate();
+                return true;
+            }
+            else
+            {
+            }
         }
         else
         {
+            var changer = other.GetComponent<ColorChanger>();
+            if (changer != null)
+            {
+                playerBall.ColorType = changer.ColorType;
+                playerBall.UpdateColor();
+            }
         }
+
+        return false;
     }
 
 
 
     void Update()
     {
-        if (IsEnd())
+        if (isFinish)
             return;
 
-        if (Time.time < waitTime)
-            return;
+        if (waitTime != 0)
+        {
+            if (Time.time < waitTime)
+            {
+                // пауза 2 сек
+                return;
+            }
+            else
+            {
+                MoveToStart();
+            }
+        }
 
         HandleInput();
 
         float distForFrame = Time.deltaTime * 20f;
 
-        var res = curve.FindPointByMagnitude(curTime, distForFrame);
-        var pos = res.pos;
-        if (res.isend)
+        Vector3 pathPos;
+
+        if (true)
         {
-            curTime = startTime;
-            pos = curve.Interpolate(curTime);
+            var findRes = curve.FindPointByMagnitude(curTime, distForFrame);
+            pathPos = findRes.pos;
+            if (findRes.isend)
+            {
+                MoveToStart();
+            }
+            else
+            {
+                curTime = findRes.time;
+            }
         }
         else
         {
-            curTime = res.time;
+            curLen += distForFrame;
+            if(curLen >= curve.Len)
+            {
+                MoveToStart();
+            }
+            curTime = curve.CalcTimeByLen(curLen);
+            pathPos = curve.Interpolate(curTime);
         }
 
-        var circle = 2 * Mathf.PI * badBall.Radius;
-        var period = distForFrame / circle;
+
+
+        var circleLen = 2 * Mathf.PI * playerBall.Radius;
+        var period = distForFrame / circleLen;
         var grad = 360f * period / 10f;
-        badBall.transform.Rotate(400f * Time.deltaTime, 0, 0, Space.Self);
+        playerBall.transform.Rotate(grad, 0, 0, Space.Self);
 
         var forward = curve.Forward(curTime);
-        var left = SegmentCurve.LeftByForward(forward);
-        var up = Vector3.Cross(forward, left).normalized * (badBall.Radius);
-        transform.position = pos + up + left * sideDist;
+        var left = Curve.LeftByForward(forward);
+        var up = Vector3.Cross(forward, left).normalized * (playerBall.Radius);
+
+        var oldPos = transform.position;
+        var delta = up + left * sideDist;
+        var newPos = pathPos + delta;
+        var dir = newPos - oldPos;
+
+        RaycastHit[] hitInfoList = Physics.SphereCastAll(oldPos, playerBall.Radius, dir, dir.magnitude);
+        foreach (var hit in hitInfoList)
+        {
+            if (HandleCollision(hit.collider))
+            {
+                newPos = hit.point + hit.normal * playerBall.Radius;
+                break;
+            }
+        }
+
         transform.rotation = Quaternion.LookRotation(forward);
+        transform.position = newPos;
     }
 }

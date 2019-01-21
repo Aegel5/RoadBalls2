@@ -61,8 +61,9 @@ public class RoadEditor : Editor
             if (i > 0)
             {
                 Vector3 forward = path[i] - path[i - 1];
-                var left = Vector3.Cross(Vector3.up, forward).normalized;
-                var right = Vector3.Cross(forward, Vector3.up).normalized;
+
+                var left = Curve.LeftByForward(forward);
+                var right = -left;
 
                 Handles.FreeMoveHandle(path[i]+left, Quaternion.identity, 0.1f, Vector3.zero, Handles.SphereHandleCap);
                 Handles.FreeMoveHandle(path[i]+right, Quaternion.identity, 0.1f, Vector3.zero, Handles.SphereHandleCap);
