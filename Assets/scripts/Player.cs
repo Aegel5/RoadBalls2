@@ -126,7 +126,7 @@ public class Player : MonoBehaviour
 
         var findRes = curve.FindPointByMagnitude(curTime, distForFrame);
         pathPos = ToGlobal(findRes.pos);
-        if (findRes.isend)
+        if (findRes.isEnd)
         {
             MoveToStart();
         }

@@ -13,7 +13,7 @@ public class BadBall : MonoBehaviour
     void Start()
     {
         var sphereCollider = GetComponent<SphereCollider>();
-        Radius = Mathf.Max(sphereCollider.transform.lossyScale.x, sphereCollider.transform.lossyScale.x, sphereCollider.transform.lossyScale.x) * sphereCollider.radius;
+        Radius = Mathf.Max(sphereCollider.transform.lossyScale.x, sphereCollider.transform.lossyScale.y, sphereCollider.transform.lossyScale.z) * sphereCollider.radius;
         UpdateColor();
     }
 

@@ -4,12 +4,6 @@ using UnityEngine;
 using System.Linq;
 using System;
 
-//public class CurvePos
-//{
-//    public Segment seg;
-//    public float t;
-//}
-
 public enum CurveType
 {
     BezierQuadratic,
@@ -21,7 +15,7 @@ public struct FindPointRes
     public Vector3 pos;
     public float time;
     public float actualSqrMagnitude;
-    public bool isend;
+    public bool isEnd;
 }
 
 [Serializable]
@@ -166,7 +160,7 @@ public class Curve
         {
             if (pos.segIndex == segments.Count-1)
             {
-                res.isend = true;
+                res.isEnd = true;
             }
             else
             {
@@ -209,11 +203,13 @@ public class Curve
 
         return time;
     }
-
+    /*
+     * Генерируем точки вдоль кривой
+     */
     public List<Vector3> GeneratePath()
     {
         var path = new List<Vector3>();
-        float alllen = 0;
+        float allLen = 0;
         for (int i = 0; i < segments.Count; i++)
         {
             var seg = segments[i];
@@ -233,11 +229,11 @@ public class Curve
 
             seg.SetLen(len);
 
-            alllen += len;
+            allLen += len;
         }
 
-        Debug.Log($"set alllen={alllen}");
-        Len = alllen;
+        Debug.Log($"set alllen={allLen}");
+        Len = allLen;
 
         return path;
     }
@@ -398,6 +394,11 @@ public class Segment
         return FindPointByMagnitude(fromTime, Interpolate(fromTime), magnitude);
     }
 
+    /*
+     * Функция находит приближенное значение time, такое что длина кривой от точки r(fromTime) до точки r(time) == magnitude
+     * Подразумевается что при увеличении (time - fromTime) увеличивается расстояние между этими точками на кривой.
+     * TODO: сделать рассчет через интеграл по кривой.
+     */
     public FindPointRes FindPointByMagnitude(float fromTime, Vector3 fromPos, float magnitude)
     {
         var sqrMag = magnitude * magnitude;
